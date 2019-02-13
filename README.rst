@@ -1,4 +1,4 @@
-Dask-Yarn
+Dask-SSH
 =========
 
-Dask-Yarn deploys Dask with SSH
+Dask-SSH deploys Dask with SSH
