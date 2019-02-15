@@ -1,0 +1,29 @@
+language: python
+sudo: required
+dist: trusty
+
+env:
+  matrix:
+    - PYTHON=3.7 TESTS=true
+
+matrix:
+  fast_finish: true
+  include:
+  - os: linux
+    # Using Travis-CI's python makes job faster by not downloading miniconda
+    python: 3.7
+    env: LINT=true
+
+
+install:
+  - if [[ $TESTS == true ]]; then source continuous_integration/travis/install.sh ; fi
+
+script:
+  - if [[ $TESTS == true ]]; then source continuous_integration/travis/run_tests.sh ; fi
+  - if [[ $LINT == true ]]; then pip install flake8 ; flake8 distributed ; fi
+
+after_success:
+  - if [[ $COVERAGE == true ]]; then coverage report; pip install -q coveralls ; coveralls ; fi
+
+notifications:
+  email: false
