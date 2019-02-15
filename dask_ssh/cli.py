@@ -23,7 +23,7 @@ from .core import SSHCluster
                     "processes per host."))
 @click.option('--nprocs', default=1, type=int,
               help="Number of worker processes per host.  Defaults to one.")
-@click.option('--hostnames', default=list(), type=str)
+@click.argument('hostnames', nargs=-1, type=str)
 @click.option('--hostfile', default=None, type=click.Path(exists=True),
               help="Textfile with hostnames/IP addresses")
 @click.option('--ssh-username', default=None, type=str,
@@ -56,14 +56,14 @@ def main(ctx, scheduler, scheduler_port, hostnames, hostfile, nthreads, nprocs,
          ssh_username, ssh_port, ssh_private_key, nohost, log_directory, remote_python,
          memory_limit, worker_port, nanny_port, dashboard_port):
     try:
+
         hostnames = list(hostnames)
         if hostfile:
             with open(hostfile) as f:
                 hosts = f.read().split()
             hostnames.extend(hosts)
-        # breakpoint()
-        hostnames, ssh_username, ssh_port, ssh_private_key = _check_ssh_config(hostnames)
-        # breakpoint()
+        hostnames, ssh_username, ssh_port, ssh_private_key = _check_ssh_config(hostnames, ssh_username, 
+                                                                            ssh_port, ssh_private_key)
     
         if not scheduler:
             scheduler = hostnames[0]
@@ -71,7 +71,7 @@ def main(ctx, scheduler, scheduler_port, hostnames, hostfile, nthreads, nprocs,
     except IndexError:
         print(ctx.get_help())
         exit(1)
-        
+
     c = SSHCluster(scheduler, scheduler_port, hostnames, nthreads, nprocs,
                    ssh_username, ssh_port, ssh_private_key, nohost, log_directory, remote_python,
                    memory_limit, worker_port, nanny_port, dashboard_port)
@@ -97,7 +97,7 @@ def go():
     check_python_3()
     main()
 
-def _check_ssh_config(_hostnames):
+def _check_ssh_config(_hostnames, ssh_username, ssh_port, ssh_private_key):
     userpath = os.path.expanduser('~/')
     ssh_config_path = os.path.join(userpath, '.ssh', 'config')
     if not os.path.exists(ssh_config_path):
@@ -108,15 +108,13 @@ def _check_ssh_config(_hostnames):
     
     hostnames = []
     ssh_port = 22
-    ssh_private_key = None
-    ssh_username = None
     for host in _hostnames:
         conf = ssh_config.lookup(host)
         if conf:
             hostnames.append(conf.get('hostname'))
             ssh_port = conf.get('port', 22)
-            ssh_username = conf.get('user')
-            ssh_private_key = conf.get('identityfile')[0]
+            ssh_username = conf.get('user', ssh_username)
+            ssh_private_key = conf.get('identityfile', [ssh_private_key])[0]
     return hostnames, ssh_username, ssh_port, ssh_private_key
 
 if __name__ == '__main__':
