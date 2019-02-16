@@ -51,10 +51,12 @@ from .core import SSHCluster
               help="Serving nanny port, defaults to random")
 @click.option('--dashboard-port', type=int, default=8787,
               help="Serving dashboard (bokeh) port, defaults to 8787")
+@click.option('--remote-dask-worker', default=None, type=str,
+              help="Worker to run. Defaults to distributed.cli.dask_worker")
 @click.pass_context
 def main(ctx, scheduler, scheduler_port, hostnames, hostfile, nthreads, nprocs,
          ssh_username, ssh_port, ssh_private_key, nohost, log_directory, remote_python,
-         memory_limit, worker_port, nanny_port, dashboard_port):
+         memory_limit, worker_port, nanny_port, dashboard_port, remote_dask_worker):
     try:
 
         hostnames = list(hostnames)
@@ -74,7 +76,7 @@ def main(ctx, scheduler, scheduler_port, hostnames, hostfile, nthreads, nprocs,
 
     c = SSHCluster(scheduler, scheduler_port, hostnames, nthreads, nprocs,
                    ssh_username, ssh_port, ssh_private_key, nohost, log_directory, remote_python,
-                   memory_limit, worker_port, nanny_port, dashboard_port)
+                   memory_limit, worker_port, nanny_port, dashboard_port, remote_dask_worker)
     import distributed
     print('\n---------------------------------------------------------------')
     print('                 Dask.distributed v{version}\n'.format(version=distributed.__version__))

@@ -276,10 +276,11 @@ def start_worker(
     worker_port,
     nanny_port,
     remote_python=None,
+    remote_dask_worker='distributed.cli.dask_worker'
 ):
 
     cmd = (
-        "{python} -m distributed.cli.dask_worker "
+        "{python} -m {remote_dask_worker} "
         "{scheduler_addr}:{scheduler_port} "
         "--nthreads {nthreads} --nprocs {nprocs} "
     )
@@ -298,6 +299,7 @@ def start_worker(
 
     cmd = cmd.format(
         python=remote_python or sys.executable,
+        remote_dask_worker=remote_dask_worker,
         scheduler_addr=scheduler_addr,
         scheduler_port=scheduler_port,
         worker_addr=worker_addr,
@@ -358,6 +360,7 @@ class SSHCluster(object):
         worker_port=None,
         nanny_port=None,
         dashboard_port=8787,
+        remote_dask_worker='distributed.cli.dask_worker'
     ):
 
         self.scheduler_addr = scheduler_addr
@@ -377,6 +380,7 @@ class SSHCluster(object):
         self.worker_port = worker_port
         self.nanny_port = nanny_port
         self.dashboard_port = dashboard_port
+        self.remote_dask_worker = remote_dask_worker
 
         # Generate a universal timestamp to use for log files
         import datetime
@@ -460,6 +464,7 @@ class SSHCluster(object):
                 self.worker_port,
                 self.nanny_port,
                 self.remote_python,
+                self.remote_dask_worker
             )
         )
 
